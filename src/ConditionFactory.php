@@ -261,6 +261,19 @@ final class ConditionFactory
     }
 
     /**
+     * Contains substring in string (case-insensitive)
+     *
+     * @param string $value
+     * @param string $comparable
+     *
+     * @return bool
+     */
+    public static function icontains($value, $comparable)
+    {
+        return (stripos($value, $comparable) !== false);
+    }
+
+    /**
      * Dates equal
      *
      * @param string $value
