@@ -101,6 +101,7 @@ class Clause
         'endswith' => 'endWith',
         'match' => 'match',
         'contains' => 'contains',
+        'icontains' => 'icontains',
         'dates' => 'dateEqual',
         'instance'  => 'instance',
         'any'  => 'any',
