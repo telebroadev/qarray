@@ -1,8 +1,8 @@
 {
-    "name": "nahid/qarray",
+    "name": "telebroadev/qarray",
     "description": "QArray is a PHP abstraction for querying array",
     "keywords": ["array", "query", "php"],
-    "homepage": "https://github.com/nahid/qarray",
+    "homepage": "https://github.com/telebroadev/qarray",
     "type": "library",
     "license": "MIT",
     "authors": [
