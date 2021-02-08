@@ -4,8 +4,6 @@ namespace Nahid\QArray;
 
 use Nahid\QArray\Exceptions\ConditionNotAllowedException;
 use Nahid\QArray\Exceptions\InvalidNodeException;
-use Nahid\QArray\Exceptions\KeyNotPresentException;
-use function DeepCopy\deep_copy;
 
 class Clause
 {
@@ -36,7 +34,6 @@ class Clause
      * @var null
      */
     protected $_take = null;
-
 
     /**
      * contains column names for except
@@ -73,38 +70,38 @@ class Clause
      * @var array
      */
     protected static $_conditionsMap = [
-        '=' => 'equal',
-        'eq' => 'equal',
-        '==' => 'strictEqual',
-        'seq' => 'strictEqual',
-        '!=' => 'notEqual',
-        'neq' => 'notEqual',
-        '!==' => 'strictNotEqual',
-        'sneq' => 'strictNotEqual',
-        '>' => 'greaterThan',
-        'gt' => 'greaterThan',
-        '<' => 'lessThan',
-        'lt' => 'lessThan',
-        '>=' => 'greaterThanOrEqual',
-        'gte' => 'greaterThanOrEqual',
-        '<=' => 'lessThanOrEqual',
-        'lte' => 'lessThanOrEqual',
-        'in'    => 'in',
-        'notin' => 'notIn',
-        'inarray' => 'inArray',
+        '='          => 'equal',
+        'eq'         => 'equal',
+        '=='         => 'strictEqual',
+        'seq'        => 'strictEqual',
+        '!='         => 'notEqual',
+        'neq'        => 'notEqual',
+        '!=='        => 'strictNotEqual',
+        'sneq'       => 'strictNotEqual',
+        '>'          => 'greaterThan',
+        'gt'         => 'greaterThan',
+        '<'          => 'lessThan',
+        'lt'         => 'lessThan',
+        '>='         => 'greaterThanOrEqual',
+        'gte'        => 'greaterThanOrEqual',
+        '<='         => 'lessThanOrEqual',
+        'lte'        => 'lessThanOrEqual',
+        'in'         => 'in',
+        'notin'      => 'notIn',
+        'inarray'    => 'inArray',
         'notinarray' => 'notInArray',
-        'null' => 'isNull',
-        'notnull' => 'isNotNull',
-        'exists' => 'exists',
-        'notexists' => 'notExists',
+        'null'       => 'isNull',
+        'notnull'    => 'isNotNull',
+        'exists'     => 'exists',
+        'notexists'  => 'notExists',
         'startswith' => 'startWith',
-        'endswith' => 'endWith',
-        'match' => 'match',
-        'contains' => 'contains',
-        'icontains' => 'icontains',
-        'dates' => 'dateEqual',
-        'instance'  => 'instance',
-        'any'  => 'any',
+        'endswith'   => 'endWith',
+        'match'      => 'match',
+        'contains'   => 'contains',
+        'icontains'  => 'icontains',
+        'dates'      => 'dateEqual',
+        'instance'   => 'instance',
+        'any'        => 'any',
     ];
 
     /**
@@ -114,19 +111,19 @@ class Clause
     public function fresh($props = [])
     {
         $properties = [
-            '_data'  => [],
-            '_original' => [],
-            '_select' => [],
+            '_data'        => [],
+            '_original'    => [],
+            '_select'      => [],
             '_isProcessed' => false,
-            '_node' => '',
-            '_except' => [],
-            '_conditions' => [],
-            '_take' => null,
-            '_offset' => 0,
-            '_traveler' => '.',
+            '_node'        => '',
+            '_except'      => [],
+            '_conditions'  => [],
+            '_take'        => null,
+            '_offset'      => 0,
+            '_traveler'    => '.',
         ];
 
-        foreach ($properties as $property=>$value) {
+        foreach ($properties as $property => $value) {
             if (isset($props[$property])) {
                 $value = $props[$property];
             }
@@ -136,7 +133,6 @@ class Clause
 
         return $this;
     }
-
 
     /**
      * import parsed data from raw json
@@ -149,12 +145,13 @@ class Clause
         $this->reProcess();
         $this->fresh();
 
-        $this->_data = deep_copy($data);
-        $this->_original = deep_copy($data);
+        $copier = new \DeepCopy\DeepCopy();
+
+        $this->_data     = $copier->copy($data);
+        $this->_original = $copier->copy($data);
 
         return $this;
     }
-
 
     /**
      * Prepare data from desire conditions
@@ -241,7 +238,6 @@ class Clause
         return isset($arr[0]) && is_array($arr[0]);
     }
 
-
     /**
      * Check the given array is a collection
      *
@@ -250,7 +246,9 @@ class Clause
      */
     protected function isCollection($array)
     {
-        if (!is_array($array)) return false;
+        if (!is_array($array)) {
+            return false;
+        }
 
         return array_keys($array) === range(0, count($array) - 1);
     }
@@ -299,9 +297,9 @@ class Clause
             return $array;
         }
 
-        $select = array_keys($keys);
+        $select  = array_keys($keys);
         $columns = array_intersect_key($array, array_flip((array) $select));
-        $row = [];
+        $row     = [];
         foreach ($columns as $column => $val) {
             $fn = null;
             if (array_key_exists($column, $keys)) {
@@ -317,7 +315,6 @@ class Clause
 
         return $row;
     }
-
 
     /**
      * selecting specific column
@@ -335,7 +332,6 @@ class Clause
 
         return array_diff_key($array, array_flip((array) $keys));
     }
-
 
     /**
      * select desired column
@@ -361,14 +357,14 @@ class Clause
      */
     protected function setSelect($columns = [])
     {
-        if (count($columns) <= 0 ) {
+        if (count($columns) <= 0) {
             return;
         }
 
         foreach ($columns as $key => $column) {
             if (is_string($column)) {
                 $this->_select[$column] = $key;
-            } elseif(is_callable($column)) {
+            } elseif (is_callable($column)) {
                 $this->_select[$key] = $column;
             } else {
                 $this->_select[$column] = $key;
@@ -402,7 +398,6 @@ class Clause
         return $this;
     }
 
-
     /**
      * select desired column for except
      *
@@ -415,13 +410,12 @@ class Clause
             $columns = func_get_args();
         }
 
-        if (count($columns) > 0 ){
+        if (count($columns) > 0) {
             $this->_except = $columns;
         }
 
         return $this;
     }
-
 
     /**
      * Prepare data for result
@@ -439,9 +433,8 @@ class Clause
 
         /*
         foreach ($data as $key => $val) {
-            $output[$key] = $this->generateResultData($val);
+        $output[$key] = $this->generateResultData($val);
         }*/
-
 
         return $this->instanceWithValue($data, ['_select' => $this->_select, '_except' => $this->_except]);
     }
@@ -489,7 +482,9 @@ class Clause
             return $data;
         }
 
-        if (!$node) return new KeyNotExists();
+        if (!$node) {
+            return new KeyNotExists();
+        }
 
         if (isset($data[$node])) {
             return $data[$node];
@@ -529,15 +524,17 @@ class Clause
      */
     protected function processQuery()
     {
-        $_data = $this->getData();
+        $_data      = $this->getData();
         $conditions = $this->_conditions;
 
         /*return array_filter($data, function ($data) use ($conditions) {
-            return $this->applyConditions($conditions, $data);
+        return $this->applyConditions($conditions, $data);
         });*/
 
         $result = [];
-        if (!is_array($_data)) return null;
+        if (!is_array($_data)) {
+            return null;
+        }
 
         foreach ($_data as $key => $data) {
             $keep = $this->applyConditions($conditions, $data);
@@ -580,24 +577,26 @@ class Clause
      */
     protected function processEachCondition($rules, $data, &$orDecision)
     {
-        if (!is_array($rules)) return false;
+        if (!is_array($rules)) {
+            return false;
+        }
 
         $andDecision = true;
 
         foreach ($rules as $rule) {
-            $params = [];
+            $params   = [];
             $function = null;
 
             $value = $this->arrayGet($data, $rule['key']);
 
             if (!is_callable($rule['condition'])) {
                 $function = $this->makeConditionalFunctionFromOperator($rule['condition']);
-                $params = [$value, $rule['value']];
+                $params   = [$value, $rule['value']];
             }
 
             if (is_callable($rule['condition'])) {
                 $function = $rule['condition'];
-                $params = [$data];
+                $params   = [$data];
             }
 
             if ($value instanceof KeyNotExists) {
@@ -606,9 +605,9 @@ class Clause
 
             $andDecision = call_user_func_array($function, $params);
 
-           /*
+            /*
             if (! $value instanceof KeyNotExists) {
-                $andDecision = call_user_func_array($function, $params);
+            $andDecision = call_user_func_array($function, $params);
             }*/
 
             //$andDecision = $value instanceof KeyNotExists ? false :  call_user_func_array($function, [$value, $rule['value']]);
@@ -654,7 +653,7 @@ class Clause
     public function where($key, $condition = null, $value = null)
     {
         if (!is_null($condition) && is_null($value)) {
-            $value = $condition;
+            $value     = $condition;
             $condition = '=';
         }
 
@@ -682,7 +681,7 @@ class Clause
     public function orWhere($key = null, $condition = null, $value = null)
     {
         if (!is_null($condition) && is_null($value)) {
-            $value = $condition;
+            $value     = $condition;
             $condition = '=';
         }
 
@@ -737,16 +736,16 @@ class Clause
     protected function makeWhere($key, $condition = null, $value = null)
     {
         $current = end($this->_conditions);
-        $index = key($this->_conditions);
+        $index   = key($this->_conditions);
 
         array_push($current, [
-            'key' => $key,
+            'key'       => $key,
             'condition' => $condition,
-            'value' => $value
+            'value'     => $value,
         ]);
 
         $this->_conditions[$index] = $current;
-        $this->_isProcessed = false;
+        $this->_isProcessed        = false;
 
         return $this;
     }
@@ -815,7 +814,6 @@ class Clause
         $this->where($key, 'null', 'null');
         return $this;
     }
-
 
     /**
      * make WHERE Boolean clause
@@ -951,7 +949,7 @@ class Clause
      */
     public function whereDate($key, $condition, $value = null)
     {
-        return $this->callableWhere(function($row) use($key, $condition, $value) {
+        return $this->callableWhere(function ($row) use ($key, $condition, $value) {
             $haystack = isset($row[$key]) ? $row[$key] : null;
             $haystack = date('Y-m-d', strtotime($haystack));
 
@@ -998,7 +996,7 @@ class Clause
      */
     public function whereCount($key, $condition, $value = null)
     {
-        return $this->where($key, function($columnValue, $row) use ($value, $condition) {
+        return $this->where($key, function ($columnValue, $row) use ($value, $condition) {
             $count = 0;
             if (is_array($columnValue)) {
                 $count = count($columnValue);

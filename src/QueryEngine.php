@@ -5,7 +5,6 @@ namespace Nahid\QArray;
 use Nahid\QArray\Exceptions\ConditionNotAllowedException;
 use Nahid\QArray\Exceptions\InvalidNodeException;
 use Nahid\QArray\Exceptions\KeyNotPresentException;
-use function DeepCopy\deep_copy;
 
 abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \Countable
 {
@@ -39,13 +38,13 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
      * @param string $path
      * @return array
      */
-    public abstract function readPath($path);
+    abstract public function readPath($path);
 
     /**
      * @param string $data
      * @return array
      */
-    public abstract function parseData($data);
+    abstract public function parseData($data);
 
     /**
      * @param $key
@@ -128,7 +127,7 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
     public function offsetUnset($key)
     {
         if ($this->offsetExists($key)) {
-           unset($this->_data[$key]);
+            unset($this->_data[$key]);
         }
     }
 
@@ -198,13 +197,15 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
     {
         if ($fresh) {
             $this->fresh([
-                '_data' => $this->_data,
+                '_data'     => $this->_data,
                 '_original' => $this->_original,
                 '_traveler' => $this->_traveler,
             ]);
         }
 
-        return deep_copy($this);
+        $copier = new \DeepCopy\DeepCopy();
+
+        return $copier->copy($this);
     }
 
     /**
@@ -276,7 +277,8 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
     public function reset($data = null, $fresh = false)
     {
         if (is_null($data)) {
-            $data = deep_copy($this->_original);
+            $copier = new \DeepCopy\DeepCopy();
+            $data   = $copier->copy($this->_original);
         }
 
         if ($fresh) {
@@ -334,7 +336,7 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
             }
 
             if (isset($data[$value])) {
-                $data[$value]  ++;
+                $data[$value]++;
             } else {
                 $data[$value] = 1;
             }
@@ -343,7 +345,6 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
         $this->_data = $data;
         return $this;
     }
-
 
     /**
      * getting distinct data from specific column
@@ -367,7 +368,6 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
         $this->_data = array_values($data);
         return $this;
     }
-
 
     /**
      * count prepared data
@@ -481,7 +481,7 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
         $count = $this->count();
         $total = $this->sum($column);
 
-        return ($total/$count);
+        return ($total / $count);
     }
 
     /**
@@ -498,10 +498,12 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
         $data = $this->_data;
         $this->setSelect($column);
 
-        if (!is_array($data)) return null;
+        if (!is_array($data)) {
+            return null;
+        }
 
         if (count($data) > 0) {
-            $data = $this->toArray();
+            $data        = $this->toArray();
             $this->_data = reset($data);
             return $this;
         }
@@ -523,7 +525,9 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
         $data = $this->_data;
         $this->setSelect($column);
 
-        if (!is_array($data)) return null;
+        if (!is_array($data)) {
+            return null;
+        }
 
         if (count($data) > 0) {
             return $this->makeResult(end($data));
@@ -547,10 +551,12 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
         $data = $this->_data;
         $this->setSelect($column);
 
-        if (!is_array($data)) return null;
+        if (!is_array($data)) {
+            return null;
+        }
 
         $total_elm = count($data);
-        $idx =  abs($index);
+        $idx       = abs($index);
 
         if (!is_integer($index) || $total_elm < $idx || $index == 0 || !is_array($this->_data)) {
             return null;
@@ -619,7 +625,7 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
 
         if ($order == 'desc') {
             rsort($this->_data);
-        }else{
+        } else {
             sort($this->_data);
         }
 
@@ -684,9 +690,8 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
 
         return $this->makeResult($data);
     }
-    
-    
-     /**
+
+    /**
      * map prepared data by using callable function for each entity
      *
      * @param callable $fn
@@ -697,11 +702,11 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
     {
         $this->prepare();
         $data = [];
-        
+
         foreach ($this->_data as $key => $val) {
             $data[] = $fn($key, $val);
         }
-        
+
         return $this->makeResult($data);
     }
 
@@ -767,11 +772,11 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
 
         if (is_array($key)) {
             foreach ($key as $k) {
-                $imp = $this->makeImplode($k, $delimiter);
+                $imp         = $this->makeImplode($k, $delimiter);
                 $implode[$k] = $imp;
             }
 
-           return $this->makeResult($implode);
+            return $this->makeResult($implode);
         }
 
         $implodedData[$key] = '';
@@ -876,7 +881,7 @@ abstract class QueryEngine extends Clause implements \ArrayAccess, \Iterator, \C
         $this->prepare();
 
         $chunk_value = array_chunk($this->_data, $amount);
-        $chunks = [];
+        $chunks      = [];
 
         if (!is_null($fn) && is_callable($fn)) {
             foreach ($chunk_value as $chunk) {
