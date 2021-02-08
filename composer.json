@@ -9,9 +9,13 @@
     "name": "Nahid Bin Azhar",
     "email": "nahid.dns@gmail.com"
   }],
+  "repositories": [{
+    "type": "vcs",
+    "url": "https://github.com/fsevestre/DeepCopy"
+  }],
   "require": {
     "php": ">=5.6",
-    "myclabs/deep-copy": "1.6",
+    "myclabs/deep-copy": "1.5",
     "ext-json": "*"
   },
   "require-dev": {
